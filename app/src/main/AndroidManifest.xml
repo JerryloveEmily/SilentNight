@@ -9,8 +9,9 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
-        <!--闪屏-->
-        <activity android:name=".ui.activity.SplashActivity"
+        <!-- 闪屏 -->
+        <activity
+            android:name=".ui.activity.SplashActivity"
             android:theme="@style/NoTitleFullScreen">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -18,10 +19,21 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <!--主界面-->
-        <activity
-            android:name=".ui.activity.MainActivity"/>
-
+        <!-- 主界面 -->
+        <activity android:name=".ui.activity.MainActivity" />
+        <!--天气-->
+        <activity android:name=".ui.activity.WeatherActivity"
+            android:theme="@style/WindowBackground"
+            android:hardwareAccelerated="false"
+            />
+        <!--饮食-->
+        <activity android:name=".ui.activity.FoodActivity" />
+        <!--健康-->
+        <activity android:name=".ui.activity.HealthActivity" />
+        <!--旅行-->
+        <activity android:name=".ui.activity.TravelActivity" />
+        <!--孕育-->
+        <activity android:name=".ui.activity.BreedActivity"/>
     </application>
 
 </manifest>

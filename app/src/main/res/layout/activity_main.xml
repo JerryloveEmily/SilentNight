@@ -1,17 +1,95 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/activity_main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingBottom="@dimen/activity_vertical_margin"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
+    android:divider="@drawable/divider"
+    android:fitsSystemWindows="true"
+    android:orientation="vertical"
+    android:showDividers="middle"
     tools:context="com.jerry.silentnight.ui.activity.MainActivity">
 
-    <TextView
-        android:layout_width="wrap_content"
+    <FrameLayout
+        android:id="@+id/fl_container"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        />
+
+    <RadioGroup
+        android:id="@+id/tab_bar"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Hello World!" />
-</RelativeLayout>
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingBottom="3dp"
+        android:paddingTop="5dp">
+
+        <RadioButton
+            android:id="@+id/tab_work"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:button="@null"
+            android:checked="true"
+            android:drawablePadding="1dp"
+            android:drawableTop="@drawable/ic_tab_work"
+            android:gravity="center_horizontal"
+            android:text="工作"
+            android:textColor="@color/selector_tab_color"
+            android:textSize="12sp" />
+        <RadioButton
+            android:id="@+id/tab_study"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:button="@null"
+            android:drawablePadding="1dp"
+            android:drawableTop="@drawable/ic_tab_study"
+            android:gravity="center_horizontal"
+            android:text="学习"
+            android:textColor="@color/selector_tab_color"
+            android:textSize="12sp" />
+
+        <RadioButton
+            android:id="@+id/tab_article"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:button="@null"
+            android:drawablePadding="1dp"
+            android:drawableTop="@drawable/ic_tab_article"
+            android:gravity="center_horizontal"
+            android:text="写文章"
+            android:textColor="@color/selector_tab_color"
+            android:textSize="12sp" />
+
+        <RadioButton
+            android:id="@+id/tab_life"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:button="@null"
+            android:drawablePadding="1dp"
+            android:drawableTop="@drawable/ic_tab_life"
+            android:gravity="center"
+            android:text="生活"
+            android:textColor="@color/selector_tab_color"
+            android:textSize="12sp" />
+
+        <RadioButton
+            android:id="@+id/tab_account"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:button="@null"
+            android:drawablePadding="1dp"
+            android:drawableTop="@drawable/ic_tab_account"
+            android:gravity="center"
+            android:text="我的"
+            android:textColor="@color/selector_tab_color"
+            android:textSize="12sp" />
+
+    </RadioGroup>
+</LinearLayout>

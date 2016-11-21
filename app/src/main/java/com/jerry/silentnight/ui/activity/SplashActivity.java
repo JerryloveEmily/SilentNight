@@ -28,33 +28,38 @@ public class SplashActivity extends AppCompatActivity {
 
     private void initView() {
         mShimmer = new Shimmer();
-        mShimmer.setRepeatCount(5)
-                .setDuration(800)
-                .setAnimatorListener(new Animator.AnimatorListener() {
-                    @Override
-                    public void onAnimationStart(Animator animator) {
-
-                    }
-
+        mShimmer.setRepeatCount(2)
+                .setDuration(1200)
+                .setAnimatorListener(new AnimatorListenerAdapter(){
                     @Override
                     public void onAnimationEnd(Animator animator) {
+                        super.onAnimationEnd(animator);
                         Intent intent = new Intent(SplashActivity.this,
                                 MainActivity.class);
                         startActivity(intent);
                         finish();
                     }
-
-                    @Override
-                    public void onAnimationCancel(Animator animator) {
-
-                    }
-
-                    @Override
-                    public void onAnimationRepeat(Animator animator) {
-
-                    }
                 });
         mShimmer.start(tvShimmer);
+    }
+
+    private class AnimatorListenerAdapter implements Animator.AnimatorListener{
+
+        @Override
+        public void onAnimationStart(Animator animator) {
+        }
+
+        @Override
+        public void onAnimationEnd(Animator animator) {
+        }
+
+        @Override
+        public void onAnimationCancel(Animator animator) {
+        }
+
+        @Override
+        public void onAnimationRepeat(Animator animator) {
+        }
     }
 
     @Override
