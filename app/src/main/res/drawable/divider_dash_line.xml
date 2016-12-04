@@ -4,7 +4,7 @@
 
     <stroke
         android:width="@dimen/_dp_1"
-        android:color="@color/txt_normal_color"
+        android:color="@color/divider_color"
         android:dashGap="@dimen/_dp_2"
         android:dashWidth="@dimen/_dp_2" />
     <size android:height="@dimen/_dp_1" />
