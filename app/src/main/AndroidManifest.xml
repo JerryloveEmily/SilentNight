@@ -13,11 +13,7 @@
         <activity
             android:name=".ui.activity.SplashActivity"
             android:theme="@style/NoTitleFullScreen">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
 
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
         </activity>
         <!-- 主界面 -->
         <activity android:name=".ui.activity.MainActivity" />
@@ -25,7 +21,13 @@
         <activity android:name=".ui.activity.WeatherActivity"
             android:theme="@style/WindowBackground"
             android:hardwareAccelerated="false"
-            />
+            >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
         <!--饮食-->
         <activity android:name=".ui.activity.FoodActivity" />
         <!--健康-->
