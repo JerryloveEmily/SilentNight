@@ -3,19 +3,29 @@ package com.jerry.silentnight.ui;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.BitmapShader;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.LinearGradient;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.graphics.Path;
+import android.graphics.PointF;
+import android.graphics.Shader;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.ShapeDrawable;
+import android.graphics.drawable.shapes.PathShape;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 
 import com.jerry.silentnight.R;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Administrator on 2016/12/3 0003.
@@ -41,24 +51,13 @@ public class WeatherChartView extends HorizontalScrollView {
 
     private void init(Context context) {
         setWillNotDraw(false);
-
-        mChildContainer = new LinearLayout(context);
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.MATCH_PARENT
-        );
-        mChildContainer.setLayoutParams(params);
-        mChildContainer.setWillNotDraw(false);
-        mChildContainer.setOrientation(LinearLayout.VERTICAL);
         ChartView chartView = new ChartView(context);
-//        chartView.setBackgroundColor(Color.parseColor("#ff0000"));
+        chartView.setBackgroundColor(Color.parseColor("#3d3d3d"));
         LinearLayout.LayoutParams llParams = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.WRAP_CONTENT,
                 LinearLayout.LayoutParams.MATCH_PARENT
         );
         chartView.setLayoutParams(llParams);
-//        mChildContainer.addView(chartView);
-
         addView(chartView);
     }
 
@@ -74,20 +73,30 @@ public class WeatherChartView extends HorizontalScrollView {
 
         private Paint mWeekPaint, mDatePaint, mWeatherPaint,
                 mMaxTemperaturePaint, mMinTemperaturePaint,
-                mTemperatureChartPaint;
+                mMaxTemperChartLinePaint, mMinTemperChartLinePaint, mTemperChartCirclePaint;
 
         private int mWeekColor = 0xffA6A6A6,
                 mDateColor = 0xff999999,
-                mMaxTempertureColor = 0xffdddddd,
-                mMinTempertrureColor = 0xffA6A6A6;
+                mMaxTempertureColor = 0xffeeeeee,
+                mMinTempertrureColor = 0xffA6A6A6,
+                mMaxTempertrureLineColor = 0xff999999,
+                mMinTempertrureLineColor = 0xff666666,
+                mTemperCircleColor = 0xffdddddd;
 
         // 需要显示天气的日期个数
         private int mItemNums = 11;
         // 每个天气日期item的宽度的像素值
-        private int mItemWidth = 200;
+        private int mItemWidth = 180;
 
         // 绘制星期的文字的基线位置baseline
-        private int mBaselineY = 60;
+        private int mWeekY = 60,
+                mDateY = mWeekY + 50,
+                mWeatherIconY = 2 * mWeekY + 20,
+                mMaxTemperatureY = 4 * mWeekY + 20,
+                mMinTemperatureY = 5 * mWeekY + 20,
+                mMaxTemperatureChartY = 6 * mWeekY,
+                mMinTemperatureChartY = 0;
+
 
         private String[] mWeekNames = {
                 "昨天", "今天", "周日",
@@ -96,26 +105,44 @@ public class WeatherChartView extends HorizontalScrollView {
                 "周日", "周一"
         };
         private String[] mDateNames = {
-                "12.03", "12.04", "12.05",
+                "12.04", "12.05",
                 "12.06", "12.07", "12.08",
                 "12.09", "12.10", "12.11",
-                "12.12", "12.13"
+                "12.12", "12.13", "12.14"
         };
         private String[] mMaxTempertrureNames = {
-                "17°", "16°", "17°",
-                "9°", "13°", "14°",
-                "12°", "10°", "12°",
-                "15°", "14°"
+                "25°", "27°", "22°",
+                "23°", "22°", "24°",
+                "22°", "22°", "24°",
+                "24°", "21°"
         };
         private String[] mMinTempertrureNames = {
-                "8°", "8°", "8°",
-                "5°", "7°", "8°",
-                "7°", "6°", "7°",
-                "9°", "6°"
+                "19°", "17°", "11°",
+                "12°", "12°", "12°",
+                "12°", "12°", "14°",
+                "15°", "13°"
+        };
+
+        /*private String[][] mTempertrureRangeNames = {
+                {"25°", "19°"}, {"27°", "17°"}, {"22°", "11°"},
+                {"23°", "12°"}, {"22°", "12°"}, {"24°", "12°"},
+                {"22°", "12°"}, {"22°", "12°"}, {"24°", "14°"},
+                {"24°", "15°"}, {"21°", "13°"}
+        };*/
+
+        private int[][] mTempertrureRangeNames = {
+                {25, 19}, {27, 17}, {22, 11},
+                {23, 12}, {22, 12}, {24, 12},
+                {22, 12}, {22, 12}, {24, 14},
+                {24, 15}, {21, 13}
         };
 
         private Drawable mDrawable;
         private Bitmap mBitmap;
+        private int mMaxTemperature = 0;
+        private int mMinTemperature = 0;
+        private Path mTemperChartPath = new Path();
+        private Bitmap mGradientBitmap;
 
         public ChartView(Context context) {
             super(context);
@@ -133,11 +160,13 @@ public class WeatherChartView extends HorizontalScrollView {
         }
 
         private void initCompont(Context context) {
-            initPaint();
+            initPaint(context);
             initDrawable(context);
+            initPeriodTemperatureRange();
+            setLayerType(View.LAYER_TYPE_SOFTWARE, null);
         }
 
-        private void initPaint() {
+        private void initPaint(Context context) {
             mWeekPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
             mWeekPaint.setColor(mWeekColor);
             mWeekPaint.setTextSize(45f);
@@ -155,18 +184,62 @@ public class WeatherChartView extends HorizontalScrollView {
 
             mMaxTemperaturePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
             mMaxTemperaturePaint.setColor(mMaxTempertureColor);
-            mMaxTemperaturePaint.setTextSize(38f);
+            mMaxTemperaturePaint.setTextSize(40f);
             mMaxTemperaturePaint.setStyle(Paint.Style.FILL);
             mMinTemperaturePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
             mMinTemperaturePaint.setColor(mMinTempertrureColor);
-            mMinTemperaturePaint.setTextSize(35f);
+            mMinTemperaturePaint.setTextSize(36f);
             mMinTemperaturePaint.setStyle(Paint.Style.FILL);
+
+            mGradientBitmap = BitmapFactory.decodeResource(context.getResources(),
+                    R.drawable.warm_background_pinned);
+            BitmapShader bitmapShader = new BitmapShader(mGradientBitmap,
+                    Shader.TileMode.REPEAT, Shader.TileMode.CLAMP);
+
+            mMaxTemperChartLinePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+            mMaxTemperChartLinePaint.setColor(mMaxTempertrureLineColor);
+            mMaxTemperChartLinePaint.setStyle(Paint.Style.FILL_AND_STROKE);
+            mMaxTemperChartLinePaint.setStrokeWidth(2);
+//            mMaxTemperChartLinePaint.setShader(bitmapShader);
+
+            mMinTemperChartLinePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+            mMinTemperChartLinePaint.setColor(mMaxTempertrureLineColor);
+            mMinTemperChartLinePaint.setStyle(Paint.Style.STROKE);
+            mMinTemperChartLinePaint.setStrokeWidth(2);
+
+            mTemperChartCirclePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+            mTemperChartCirclePaint.setColor(mTemperCircleColor);
+            mTemperChartCirclePaint.setTextSize(36f);
+            mTemperChartCirclePaint.setStrokeWidth(2f);
+            mTemperChartCirclePaint.setStyle(Paint.Style.FILL_AND_STROKE);
         }
 
-        private void initDrawable(Context context){
+        private void initDrawable(Context context) {
             mBitmap = BitmapFactory.decodeResource(context.getResources(),
                     R.drawable.classic_ico_partly_cloudy);
             mBitmap = scaleBitmap(mBitmap, 0.6f);
+        }
+
+        /**
+         * 初始化一个周期的温度范围
+         */
+        private void initPeriodTemperatureRange() {
+            int[][] rangeNames = mTempertrureRangeNames;
+            for (int i = 0; i < rangeNames.length; i++) {
+                int[] names = rangeNames[i];
+                int maxValue = names[0];
+                int minValue = names[1];
+                if (i == 0) {
+                    mMaxTemperature = maxValue;
+                    mMinTemperature = minValue;
+                }
+                if (maxValue > mMaxTemperature) {
+                    mMaxTemperature = maxValue;
+                }
+                if (minValue < mMinTemperature) {
+                    mMinTemperature = minValue;
+                }
+            }
         }
 
         /**
@@ -196,16 +269,37 @@ public class WeatherChartView extends HorizontalScrollView {
         protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
             super.onMeasure(widthMeasureSpec, heightMeasureSpec);
             int width = mItemNums * mItemWidth;
-            int height = 600;
+            int height = 500;
             setMeasuredDimension(width, height);
         }
 
         @Override
+        protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+            super.onSizeChanged(w, h, oldw, oldh);
+            createShader();
+        }
+
+        private void createShader() {
+            int w = getWidth();
+            int h = getHeight();
+            LinearGradient gradient = new LinearGradient(
+                    0, mMaxTemperatureY, w, h,
+                    0xff666666, 0x01f0f0f0, Shader.TileMode.CLAMP
+            );
+            Matrix matrix = new Matrix();
+            matrix.setRotate(270, w / 2, h / 2);
+            gradient.setLocalMatrix(matrix);
+            mMaxTemperChartLinePaint.setShader(gradient);
+        }
+
+        @Override
         protected void onDraw(Canvas canvas) {
+            super.onDraw(canvas);
             drawWeek(canvas);
             drawDate(canvas);
             drawWeatherDrawable(canvas);
             drawTemperatureText(canvas);
+            drawTemperatureChart(canvas);
         }
 
         private void drawWeek(Canvas canvas) {
@@ -213,45 +307,132 @@ public class WeatherChartView extends HorizontalScrollView {
                 String name = mWeekNames[i];
                 float nameWidth = mWeekPaint.measureText(name);
                 float x = (mItemWidth - nameWidth) / 2 + i * mItemWidth;
-                Log.e("ChartView", "drawWeek_x:" + x + ", y: " + mBaselineY);
-                canvas.drawText(name, x, mBaselineY, mWeekPaint);
+//                Log.e("ChartView", "drawWeek_x:" + x + ", y: " + mWeekY);
+                canvas.drawText(name, x, mWeekY, mWeekPaint);
             }
         }
 
-        private void drawDate(Canvas canvas){
+        private void drawDate(Canvas canvas) {
             for (int i = 0; i < mItemNums; i++) {
                 String name = mDateNames[i];
                 float nameWidth = mDatePaint.measureText(name);
                 float x = (mItemWidth - nameWidth) / 2 + i * mItemWidth;
-                float y = mBaselineY + 50;
-                Log.e("ChartView", "drawDate_x:" + x + ", y: " + y);
+                float y = mDateY;
+//                Log.e("ChartView", "drawDate_x:" + x + ", y: " + y);
                 canvas.drawText(name, x, y, mDatePaint);
             }
         }
 
-        private void drawWeatherDrawable(Canvas canvas){
+        private void drawWeatherDrawable(Canvas canvas) {
             for (int i = 0; i < mItemNums; i++) {
                 float bitmapWidth = mBitmap.getWidth();
                 float left = (mItemWidth - bitmapWidth) / 2 + i * mItemWidth;
-                float top = mBaselineY + 50 + 30;
-                Log.e("ChartView", "drawDate_left:" + left + ", top: " + top);
+                float top = mWeatherIconY;
+//                Log.e("ChartView", "drawDate_left:" + left + ", top: " + top);
                 canvas.drawBitmap(mBitmap, left, top, mWeatherPaint);
             }
         }
 
-        private void drawTemperatureText(Canvas canvas){
+        private void drawTemperatureText(Canvas canvas) {
             for (int i = 0; i < mItemNums; i++) {
                 String maxName = mMaxTempertrureNames[i];
                 String minName = mMinTempertrureNames[i];
                 float maxNameWidth = mMaxTemperaturePaint.measureText(maxName);
                 float minNameWidth = mMinTemperaturePaint.measureText(minName);
                 float maxX = (mItemWidth - maxNameWidth) / 2 + i * mItemWidth;
-                float maxY = 4 * mBaselineY + 30;
+                float maxY = mMaxTemperatureY;
                 float minX = (mItemWidth - minNameWidth) / 2 + i * mItemWidth;
-                float minY = 5 * mBaselineY + 30;
+                float minY = mMinTemperatureY;
                 canvas.drawText(maxName, maxX, maxY, mMaxTemperaturePaint);
                 canvas.drawText(minName, minX, minY, mMinTemperaturePaint);
             }
+        }
+
+        private void drawTemperatureChart(Canvas canvas) {
+            List<Points> pointsList = calculateStartEndXY();
+            // 绘制最高温度的线
+            for (int i = 0; i < pointsList.size(); i++) {
+                Points points = pointsList.get(i);
+                createShader(i, points.startX, points.maxStartY, points.endX, points.maxEndY);
+            }
+            path.lineTo(getWidth(), getHeight());
+            path.lineTo(0, getHeight());
+            path.close();
+//            canvas.clipPath(path);
+            canvas.drawPath(path, mMaxTemperChartLinePaint);
+//            canvas.drawBitmap(mGradientBitmap, 0, mMaxTemperatureChartY, mMaxTemperChartLinePaint);
+            for (int i = 0; i < pointsList.size(); i++) {
+                Points points = pointsList.get(i);
+                // 绘制最低温度的线
+                canvas.drawLine(points.startX, points.minStartY, points.endX, points.minEndY, mMinTemperChartLinePaint);
+                // 绘制最高温度所在位置圆点
+                canvas.drawCircle(points.endX, points.maxEndY, 6, mTemperChartCirclePaint);
+                // 绘制最低温度所在位置圆点
+                canvas.drawCircle(points.endX, points.minEndY, 6, mTemperChartCirclePaint);
+            }
+        }
+
+        Path path = new Path();
+
+        private void createShader(int i, float startX, float startY, float endX, float endY) {
+            if (i == 0) {
+                path.moveTo(startX, startY);
+            }
+            path.lineTo(endX, endY);
+        }
+
+        private List<Points> calculateStartEndXY() {
+            List<Points> pointsList = new ArrayList<>();
+            // 每个温度刻度直接的y轴偏移量像素
+            int offset = 5;
+            int[][] rangeNames = mTempertrureRangeNames;
+            for (int i = 0; i <= mItemNums; i++) {
+                int maxTemper, minTemper;
+                int preMaxTemper, curMaxTemper, preMinTemper, curMinTemper;
+                if (i != mItemNums) {
+                    int[] temperatureNames = rangeNames[i];
+                    maxTemper = temperatureNames[0];
+                    minTemper = temperatureNames[1];
+                    // 前一个和当前的最高温度
+                    preMaxTemper = ((i == 0) ? maxTemper : rangeNames[i - 1][0]);
+                    curMaxTemper = maxTemper;
+
+                    // 前一个和当前的最低温度
+                    preMinTemper = ((i == 0) ? minTemper : rangeNames[i - 1][1]);
+                    curMinTemper = minTemper;
+                } else {
+                    // 最后一条线的前一个和当前的最高温度
+                    curMaxTemper = preMaxTemper = rangeNames[i - 1][0];
+
+                    // 最后一条线的前一个和当前的最低温度
+                    curMinTemper = preMinTemper = rangeNames[i - 1][1];
+                }
+                float startX = (i == 0) ? 0 : (i - 0.5f) * mItemWidth;
+                float maxStartY = mMaxTemperatureChartY + (mMaxTemperature - preMaxTemper) * offset;
+                float endX = (i == 0) ? mItemWidth / 2 : (i + 0.5f) * mItemWidth;
+                float maxEndY = mMaxTemperatureChartY + (mMaxTemperature - curMaxTemper) * offset;
+                // 最低温度起始和结束Y值
+                float minStartY = mMaxTemperatureChartY + (mMaxTemperature - preMinTemper) * offset + 3;
+                float minEndY = mMaxTemperatureChartY + (mMaxTemperature - curMinTemper) * offset + 3;
+                Points points = new Points();
+                points.startX = startX;
+                points.maxStartY = maxStartY;
+                points.endX = endX;
+                points.maxEndY = maxEndY;
+                points.minStartY = minStartY;
+                points.minEndY = minEndY;
+                pointsList.add(points);
+            }
+            return pointsList;
+        }
+
+        class Points {
+            public float startX;
+            public float maxStartY;
+            public float endX;
+            public float maxEndY;
+            public float minStartY;
+            public float minEndY;
         }
     }
 }

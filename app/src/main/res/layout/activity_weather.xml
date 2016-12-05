@@ -216,7 +216,6 @@
             <com.jerry.silentnight.ui.WeatherChartView
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/_dp_200"
-                android:background="@color/weather_chart_color"
                 />
 
             <LinearLayout
