@@ -3,21 +3,15 @@ package com.jerry.silentnight.ui;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.BitmapShader;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.LinearGradient;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
-import android.graphics.PointF;
 import android.graphics.Shader;
 import android.graphics.drawable.Drawable;
-import android.graphics.drawable.GradientDrawable;
-import android.graphics.drawable.ShapeDrawable;
-import android.graphics.drawable.shapes.PathShape;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.View;
 import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
@@ -191,11 +185,6 @@ public class WeatherChartView extends HorizontalScrollView {
             mMinTemperaturePaint.setTextSize(36f);
             mMinTemperaturePaint.setStyle(Paint.Style.FILL);
 
-            mGradientBitmap = BitmapFactory.decodeResource(context.getResources(),
-                    R.drawable.warm_background_pinned);
-            BitmapShader bitmapShader = new BitmapShader(mGradientBitmap,
-                    Shader.TileMode.REPEAT, Shader.TileMode.CLAMP);
-
             mMaxTemperChartLinePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
             mMaxTemperChartLinePaint.setColor(mMaxTempertrureLineColor);
             mMaxTemperChartLinePaint.setStyle(Paint.Style.FILL_AND_STROKE);
@@ -280,16 +269,13 @@ public class WeatherChartView extends HorizontalScrollView {
         }
 
         private void createShader() {
-            int w = getWidth();
             int h = getHeight();
             LinearGradient gradient = new LinearGradient(
-                    0, mMaxTemperatureY, w, h,
-                    0xff666666, 0x01f0f0f0, Shader.TileMode.CLAMP
-            );
-            Matrix matrix = new Matrix();
-            matrix.setRotate(270, w / 2, h / 2);
-            gradient.setLocalMatrix(matrix);
+                    0, mMaxTemperatureY, 0, h,
+                    new int[] {0xff555555, 0xff262626, 0xff555555}, null,
+                    Shader.TileMode.REPEAT);
             mMaxTemperChartLinePaint.setShader(gradient);
+            mMinTemperChartLinePaint.setShader(gradient);
         }
 
         @Override
@@ -353,18 +339,28 @@ public class WeatherChartView extends HorizontalScrollView {
             // 绘制最高温度的线
             for (int i = 0; i < pointsList.size(); i++) {
                 Points points = pointsList.get(i);
-                createShader(i, points.startX, points.maxStartY, points.endX, points.maxEndY);
+                createShader(mMaxPath, i, points.startX, points.maxStartY, points.endX, points.maxEndY);
             }
-            path.lineTo(getWidth(), getHeight());
-            path.lineTo(0, getHeight());
-            path.close();
-//            canvas.clipPath(path);
-            canvas.drawPath(path, mMaxTemperChartLinePaint);
-//            canvas.drawBitmap(mGradientBitmap, 0, mMaxTemperatureChartY, mMaxTemperChartLinePaint);
+            mMaxPath.lineTo(getWidth(), getHeight());
+            mMaxPath.lineTo(0, getHeight());
+            mMaxPath.close();
+            canvas.drawPath(mMaxPath, mMaxTemperChartLinePaint);
+
             for (int i = 0; i < pointsList.size(); i++) {
                 Points points = pointsList.get(i);
+                createShader(mMinPath, i, points.startX, points.minStartY, points.endX, points.minEndY);
+            }
+            mMinPath.lineTo(getWidth(), getHeight());
+            mMinPath.lineTo(0, getHeight());
+            mMinPath.close();
+            canvas.drawPath(mMinPath, mMinTemperChartLinePaint);
+            for (int i = 0; i < pointsList.size(); i++) {
+                Points points = pointsList.get(i);
+                canvas.drawLine(points.startX, points.maxStartY,
+                        points.endX, points.maxEndY, mTemperChartCirclePaint);
                 // 绘制最低温度的线
-                canvas.drawLine(points.startX, points.minStartY, points.endX, points.minEndY, mMinTemperChartLinePaint);
+                canvas.drawLine(points.startX, points.minStartY,
+                        points.endX, points.minEndY, mTemperChartCirclePaint);
                 // 绘制最高温度所在位置圆点
                 canvas.drawCircle(points.endX, points.maxEndY, 6, mTemperChartCirclePaint);
                 // 绘制最低温度所在位置圆点
@@ -372,9 +368,10 @@ public class WeatherChartView extends HorizontalScrollView {
             }
         }
 
-        Path path = new Path();
+        Path mMaxPath = new Path();
+        Path mMinPath = new Path();
 
-        private void createShader(int i, float startX, float startY, float endX, float endY) {
+        private void createShader(Path path, int i, float startX, float startY, float endX, float endY) {
             if (i == 0) {
                 path.moveTo(startX, startY);
             }

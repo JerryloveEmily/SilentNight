@@ -1,6 +1,7 @@
 package com.jerry.silentnight.ui.activity;
 
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -28,6 +29,10 @@ public class WeatherActivity extends BaseActivity {
     TextView mTvBack;
     /*@Bind(R.id.tv_center)
     TextView mTvTitle;*/
+    @Bind(R.id.tv_weather_status)
+    TextView mTvWeatherStatus;
+    @Bind(R.id.tv_tomorrow_weather_status)
+    TextView mTvTomorrowWeatherStatus;
 
     @BindColor(R.color.colorPrimary)
     int mColorNavBar;
@@ -52,6 +57,11 @@ public class WeatherActivity extends BaseActivity {
         mRlNavBar.setBackgroundColor(mColorNavBar);
 //        mTvTitle.setTextColor(Color.WHITE);
 //        mTvTitle.setText(mTxtWeather);
+        Typeface typeface = Typeface.createFromAsset(
+                getResources().getAssets(),
+                "fonts/classic.otf");
+        mTvWeatherStatus.setTypeface(typeface);
+        mTvTomorrowWeatherStatus.setTypeface(typeface);
     }
 
     @Override
