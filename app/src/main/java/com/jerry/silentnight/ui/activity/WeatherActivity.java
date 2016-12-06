@@ -1,12 +1,9 @@
 package com.jerry.silentnight.ui.activity;
 
-import android.graphics.Color;
 import android.graphics.Typeface;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.RelativeLayout;
-import android.widget.TableLayout;
 import android.widget.TextView;
 
 import com.jerry.silentnight.R;
@@ -54,7 +51,7 @@ public class WeatherActivity extends BaseActivity {
 
     @Override
     protected void initView() {
-        mRlNavBar.setBackgroundColor(mColorNavBar);
+//        mRlNavBar.setBackgroundColor(mColorNavBar);
 //        mTvTitle.setTextColor(Color.WHITE);
 //        mTvTitle.setText(mTxtWeather);
         Typeface typeface = Typeface.createFromAsset(
