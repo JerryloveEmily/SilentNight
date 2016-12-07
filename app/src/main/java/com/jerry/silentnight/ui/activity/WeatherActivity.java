@@ -78,7 +78,7 @@ public class WeatherActivity extends BaseActivity {
 //        mWeaChartView.setDateTextSize(25);
 //        mWeaChartView.setMaxTemperTextSize(9);
 //        mWeaChartView.setMinTemperTextSize(20);
-        mWeaChartView.setItemWidth(260);
+//        mWeaChartView.setItemWidth(260);
         int afterColor = mWeaChartView.getWeekTextColor();
         Log.e("Activity", "afterColor: " + afterColor);
     }
