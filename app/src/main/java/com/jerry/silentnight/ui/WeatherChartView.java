@@ -1,8 +1,10 @@
 package com.jerry.silentnight.ui;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.BlurMaskFilter;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.LinearGradient;
@@ -10,8 +12,10 @@ import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Shader;
-import android.graphics.drawable.Drawable;
+import android.support.annotation.ColorInt;
+import android.text.TextPaint;
 import android.util.AttributeSet;
+import android.util.TypedValue;
 import android.view.View;
 import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
@@ -27,8 +31,8 @@ import java.util.List;
 
 public class WeatherChartView extends HorizontalScrollView {
 
-
-    private LinearLayout mChildContainer;
+    private ChartView mChartView;
+    private int mBackgroundColor = Color.parseColor("#3d3d3d");
 
     public WeatherChartView(Context context) {
         this(context, null);
@@ -45,19 +49,92 @@ public class WeatherChartView extends HorizontalScrollView {
 
     private void init(Context context) {
         setWillNotDraw(false);
-        ChartView chartView = new ChartView(context);
-        chartView.setBackgroundColor(Color.parseColor("#3d3d3d"));
+        mChartView = new ChartView(context);
+//        mChartView.setBackgroundColor(mBackgroundColor);
         LinearLayout.LayoutParams llParams = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.WRAP_CONTENT,
                 LinearLayout.LayoutParams.MATCH_PARENT
         );
-        chartView.setLayoutParams(llParams);
-        addView(chartView);
+        mChartView.setLayoutParams(llParams);
+        addView(mChartView);
     }
 
     @Override
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+    public void setBackgroundColor(int color) {
+        super.setBackgroundColor(color);
+        this.mBackgroundColor = color;
+    }
+
+    public int getWeekTextColor() {
+        return mChartView.getWeekTextColor();
+    }
+
+    public void setWeekTextColor(int textColor) {
+        mChartView.setWeekTextColor(textColor);
+    }
+
+    public int getDateTextColor() {
+        return mChartView.getDateTextColor();
+    }
+
+    public void setDateTextColor(int textColor) {
+        mChartView.setDateTextColor(textColor);
+    }
+
+    public int getItemWidth() {
+        return mChartView.getItemWidth();
+    }
+
+    public void setItemWidth(int itemWidth) {
+        mChartView.setItemWidth(itemWidth);
+    }
+
+    public float getMinTemperTextSize() {
+        return mChartView.getMinTemperTextSize();
+    }
+
+    public void setMinTemperTextSize(float textSize) {
+        mChartView.setMinTemperTextSize(textSize);
+    }
+
+    public float getMaxTemperTextSize() {
+        return mChartView.getMaxTemperTextSize();
+    }
+
+    public void setMaxTemperTextSize(float textSize) {
+        mChartView.setMaxTemperTextSize(textSize);
+    }
+
+    public float getDateTextSize() {
+        return mChartView.getDateTextSize();
+    }
+
+    public void setDateTextSize(float textSize) {
+        mChartView.setDateTextSize(textSize);
+    }
+
+    public float getWeekTextSize() {
+        return mChartView.getWeekTextSize();
+    }
+
+    public void setWeekTextSize(float textSize) {
+        mChartView.setWeekTextSize(textSize);
+    }
+
+    public int getMinTemperTextColor() {
+        return mChartView.getMinTemperTextColor();
+    }
+
+    public void setMinTemperTextColor(int textColor) {
+        mChartView.setMinTemperTextColor(textColor);
+    }
+
+    public int getMaxTemperTextColor() {
+        return mChartView.getMaxTemperTextColor();
+    }
+
+    public void setMaxTemperTextColor(int textColor) {
+        mChartView.setMaxTemperTextColor(textColor);
     }
 
     /**
@@ -65,17 +142,25 @@ public class WeatherChartView extends HorizontalScrollView {
      */
     private class ChartView extends View {
 
-        private Paint mWeekPaint, mDatePaint, mWeatherPaint,
-                mMaxTemperaturePaint, mMinTemperaturePaint,
-                mMaxTemperChartLinePaint, mMinTemperChartLinePaint, mTemperChartCirclePaint;
+        private TextPaint mWeekPaint, mDatePaint,
+                mMaxTemperTextPaint, mMinTemperTextPaint;
 
-        private int mWeekColor = 0xffA6A6A6,
-                mDateColor = 0xff999999,
-                mMaxTempertureColor = 0xffeeeeee,
-                mMinTempertrureColor = 0xffA6A6A6,
+        private Paint mWeatherIconPaint,
+                mMaxTemperChartLinePaint, mMinTemperChartLinePaint,
+                mTemperChartCirclePaint;
+
+        private int mWeekTextColor = 0xffA6A6A6,
+                mDateTextColor = 0xff999999,
+                mMaxTemperTextColor = 0xffeeeeee,
+                mMinTemperTextColor = 0xffA6A6A6,
                 mMaxTempertrureLineColor = 0xff999999,
                 mMinTempertrureLineColor = 0xff666666,
                 mTemperCircleColor = 0xffdddddd;
+
+        private float mWeekTextSize = 16f,
+                mDateTextSize = 10f,
+                mMaxTemperTextSize = 16f,
+                mMinTemperTextSize = 15f;
 
         // 需要显示天气的日期个数
         private int mItemNums = 11;
@@ -90,7 +175,6 @@ public class WeatherChartView extends HorizontalScrollView {
                 mMinTemperatureY = 5 * mWeekY + 20,
                 mMaxTemperatureChartY = 6 * mWeekY,
                 mMinTemperatureChartY = 0;
-
 
         private String[] mWeekNames = {
                 "昨天", "今天", "周日",
@@ -117,13 +201,6 @@ public class WeatherChartView extends HorizontalScrollView {
                 "15°", "13°"
         };
 
-        /*private String[][] mTempertrureRangeNames = {
-                {"25°", "19°"}, {"27°", "17°"}, {"22°", "11°"},
-                {"23°", "12°"}, {"22°", "12°"}, {"24°", "12°"},
-                {"22°", "12°"}, {"22°", "12°"}, {"24°", "14°"},
-                {"24°", "15°"}, {"21°", "13°"}
-        };*/
-
         private int[][] mTempertrureRangeNames = {
                 {25, 19}, {27, 17}, {22, 11},
                 {23, 12}, {22, 12}, {24, 12},
@@ -131,65 +208,115 @@ public class WeatherChartView extends HorizontalScrollView {
                 {24, 15}, {21, 13}
         };
 
-        private Drawable mDrawable;
-        private Bitmap mBitmap;
+        private List<InnerData> mDatas;
+
+        private Bitmap[] mWeatherIconBitmaps;
         private int mMaxTemperature = 0;
         private int mMinTemperature = 0;
-        private Path mTemperChartPath = new Path();
-        private Bitmap mGradientBitmap;
+        private Path mMaxTemperPath = new Path();
+        private Path mMinTemperPath = new Path();
 
         public ChartView(Context context) {
             super(context);
-            initCompont(context);
+            init(context);
         }
 
         public ChartView(Context context, AttributeSet attrs) {
             super(context, attrs);
-            initCompont(context);
+            init(context);
         }
 
         public ChartView(Context context, AttributeSet attrs, int defStyleAttr) {
             super(context, attrs, defStyleAttr);
-            initCompont(context);
+            init(context);
         }
 
-        private void initCompont(Context context) {
+        private void init(Context context) {
+            initComponents(context);
+            initData();
+        }
+
+        private void initComponents(Context context) {
+            initTextSize();
             initPaint(context);
             initDrawable(context);
             initPeriodTemperatureRange();
             setLayerType(View.LAYER_TYPE_SOFTWARE, null);
         }
 
+        /**
+         * 初始化文字大小
+         */
+        private void initTextSize() {
+            mWeekTextSize = applyDimensionTextSize(mWeekTextSize);
+            mDateTextSize = applyDimensionTextSize(mDateTextSize);
+            mMaxTemperTextSize = applyDimensionTextSize(mMaxTemperTextSize);
+            mMinTemperTextSize = applyDimensionTextSize(mMinTemperTextSize);
+        }
+
+        /**
+         * 按SP单位缩放文字大小
+         *
+         * @param size 文字大小
+         * @return 缩放后的文字大小
+         */
+        private float applyDimensionTextSize(float size) {
+            return applyDimensionTextSize(TypedValue.COMPLEX_UNIT_SP, size);
+        }
+
+        private float applyDimensionTextSize(int unit, float size) {
+            Context c = getContext();
+            Resources r;
+            if (c == null)
+                r = Resources.getSystem();
+            else
+                r = c.getResources();
+            return TypedValue.applyDimension(
+                    unit, size, r.getDisplayMetrics());
+        }
+
+        private void initData() {
+            mDatas = new ArrayList<>();
+            for (int i = 0; i < 11; i++) {
+                InnerData data = new InnerData();
+                data.setWeekName(mWeekNames[i]);
+                data.setDateName(mDateNames[i]);
+                data.setWeatherIcon(mWeatherIconBitmaps[i]);
+                data.setMaxTemper(mTempertrureRangeNames[i][0]);
+                data.setMinTemper(mTempertrureRangeNames[i][1]);
+                mDatas.add(data);
+            }
+        }
+
         private void initPaint(Context context) {
-            mWeekPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-            mWeekPaint.setColor(mWeekColor);
-            mWeekPaint.setTextSize(45f);
+            mWeekPaint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
+            mWeekPaint.setColor(mWeekTextColor);
+            mWeekPaint.setTextSize(mWeekTextSize);
             mWeekPaint.setStyle(Paint.Style.FILL);
 
-            mDatePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-            mDatePaint.setColor(mDateColor);
-            mDatePaint.setTextSize(32f);
+            mDatePaint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
+            mDatePaint.setColor(mDateTextColor);
+            mDatePaint.setTextSize(mDateTextSize);
             mDatePaint.setStyle(Paint.Style.FILL);
 
-            mWeatherPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-            mWeatherPaint.setColor(mDateColor);
-            mWeatherPaint.setTextSize(35f);
-            mWeatherPaint.setStyle(Paint.Style.FILL);
+            mWeatherIconPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+            mWeatherIconPaint.setColor(mDateTextColor);
+            mWeatherIconPaint.setTextSize(35f);
+            mWeatherIconPaint.setStyle(Paint.Style.FILL);
 
-            mMaxTemperaturePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-            mMaxTemperaturePaint.setColor(mMaxTempertureColor);
-            mMaxTemperaturePaint.setTextSize(40f);
-            mMaxTemperaturePaint.setStyle(Paint.Style.FILL);
-            mMinTemperaturePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-            mMinTemperaturePaint.setColor(mMinTempertrureColor);
-            mMinTemperaturePaint.setTextSize(36f);
-            mMinTemperaturePaint.setStyle(Paint.Style.FILL);
+            mMaxTemperTextPaint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
+            mMaxTemperTextPaint.setColor(mMaxTemperTextColor);
+            mMaxTemperTextPaint.setTextSize(mMaxTemperTextSize);
+            mMaxTemperTextPaint.setStyle(Paint.Style.FILL);
+            mMinTemperTextPaint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
+            mMinTemperTextPaint.setColor(mMinTemperTextColor);
+            mMinTemperTextPaint.setTextSize(mMinTemperTextSize);
+            mMinTemperTextPaint.setStyle(Paint.Style.FILL);
 
             mMaxTemperChartLinePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
             mMaxTemperChartLinePaint.setColor(mMaxTempertrureLineColor);
             mMaxTemperChartLinePaint.setStyle(Paint.Style.FILL_AND_STROKE);
             mMaxTemperChartLinePaint.setStrokeWidth(2);
-//            mMaxTemperChartLinePaint.setShader(bitmapShader);
 
             mMinTemperChartLinePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
             mMinTemperChartLinePaint.setColor(mMaxTempertrureLineColor);
@@ -204,9 +331,13 @@ public class WeatherChartView extends HorizontalScrollView {
         }
 
         private void initDrawable(Context context) {
-            mBitmap = BitmapFactory.decodeResource(context.getResources(),
+            Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(),
                     R.drawable.classic_ico_partly_cloudy);
-            mBitmap = scaleBitmap(mBitmap, 0.6f);
+            bitmap = scaleBitmap(bitmap, 0.6f);
+            mWeatherIconBitmaps = new Bitmap[mItemNums];
+            for (int i = 0; i < mItemNums; i++) {
+                mWeatherIconBitmaps[i] = bitmap;
+            }
         }
 
         /**
@@ -272,7 +403,7 @@ public class WeatherChartView extends HorizontalScrollView {
             int h = getHeight();
             LinearGradient gradient = new LinearGradient(
                     0, mMaxTemperatureY, 0, h,
-                    new int[] {0xff555555, 0xff262626, 0xff555555}, null,
+                    new int[]{0xff555555, 0xff262626, 0xff555555}, null,
                     Shader.TileMode.REPEAT);
             mMaxTemperChartLinePaint.setShader(gradient);
             mMinTemperChartLinePaint.setShader(gradient);
@@ -281,57 +412,49 @@ public class WeatherChartView extends HorizontalScrollView {
         @Override
         protected void onDraw(Canvas canvas) {
             super.onDraw(canvas);
-            drawWeek(canvas);
-            drawDate(canvas);
-            drawWeatherDrawable(canvas);
-            drawTemperatureText(canvas);
+//            mWeekY = (int) (mWeekY - (mWeekPaint.ascent() + mWeekPaint.descent())/2);
+//            mDateY = (int) (mDateY - (mDatePaint.ascent() + mDatePaint.descent())/2);
+//            mMaxTemperatureY = (int) (mMaxTemperatureY - (mMaxTemperTextPaint.ascent() + mMaxTemperTextPaint.descent())/2);
+//            mMinTemperatureY = (int) (mMinTemperatureY - (mMinTemperTextPaint.ascent() + mMinTemperTextPaint.descent())/2);
+
+            for (int i = 0; i < mDatas.size(); i++) {
+                InnerData data = mDatas.get(i);
+                drawTextOrBitmap(canvas, data.getWeekName(), i, mWeekY, false, mWeekPaint);
+                drawTextOrBitmap(canvas, data.getDateName(), i, mDateY, false, mDatePaint);
+                drawTextOrBitmap(canvas, data.getWeatherIcon(), i, mWeatherIconY, true, mWeatherIconPaint);
+                drawTextOrBitmap(canvas, appendTemperature(data.getMaxTemper()), i, mMaxTemperatureY, false, mMaxTemperTextPaint);
+                drawTextOrBitmap(canvas, appendTemperature(data.getMinTemper()), i, mMinTemperatureY, false, mMinTemperTextPaint);
+            }
             drawTemperatureChart(canvas);
         }
 
-        private void drawWeek(Canvas canvas) {
-            for (int i = 0; i < mItemNums; i++) {
-                String name = mWeekNames[i];
-                float nameWidth = mWeekPaint.measureText(name);
-                float x = (mItemWidth - nameWidth) / 2 + i * mItemWidth;
-//                Log.e("ChartView", "drawWeek_x:" + x + ", y: " + mWeekY);
-                canvas.drawText(name, x, mWeekY, mWeekPaint);
+        private String appendTemperature(int value) {
+            return String.valueOf(value) + "°";
+        }
+
+        private void drawTemperatureText(Canvas canvas, int position) {
+            drawTextOrBitmap(canvas, mMaxTempertrureNames[position], position, mMaxTemperatureY, false, mMaxTemperTextPaint);
+            drawTextOrBitmap(canvas, mMinTempertrureNames[position], position, mMinTemperatureY, false, mMinTemperTextPaint);
+        }
+
+        private void drawTextOrBitmap(Canvas canvas, Object object, int position, float y, boolean isBitmap, Paint paint) {
+            if (isBitmap) {
+                drawWeatherDrawable(canvas, (Bitmap) object, position, y, paint);
+            } else {
+                drawText(canvas, (String) object, position, y, paint);
             }
         }
 
-        private void drawDate(Canvas canvas) {
-            for (int i = 0; i < mItemNums; i++) {
-                String name = mDateNames[i];
-                float nameWidth = mDatePaint.measureText(name);
-                float x = (mItemWidth - nameWidth) / 2 + i * mItemWidth;
-                float y = mDateY;
-//                Log.e("ChartView", "drawDate_x:" + x + ", y: " + y);
-                canvas.drawText(name, x, y, mDatePaint);
-            }
+        private void drawText(Canvas canvas, String text, int position, float y, Paint paint) {
+            float nameWidth = paint.measureText(text);
+            float x = (mItemWidth - nameWidth) / 2 + position * mItemWidth;
+            canvas.drawText(text, x, y, paint);
         }
 
-        private void drawWeatherDrawable(Canvas canvas) {
-            for (int i = 0; i < mItemNums; i++) {
-                float bitmapWidth = mBitmap.getWidth();
-                float left = (mItemWidth - bitmapWidth) / 2 + i * mItemWidth;
-                float top = mWeatherIconY;
-//                Log.e("ChartView", "drawDate_left:" + left + ", top: " + top);
-                canvas.drawBitmap(mBitmap, left, top, mWeatherPaint);
-            }
-        }
-
-        private void drawTemperatureText(Canvas canvas) {
-            for (int i = 0; i < mItemNums; i++) {
-                String maxName = mMaxTempertrureNames[i];
-                String minName = mMinTempertrureNames[i];
-                float maxNameWidth = mMaxTemperaturePaint.measureText(maxName);
-                float minNameWidth = mMinTemperaturePaint.measureText(minName);
-                float maxX = (mItemWidth - maxNameWidth) / 2 + i * mItemWidth;
-                float maxY = mMaxTemperatureY;
-                float minX = (mItemWidth - minNameWidth) / 2 + i * mItemWidth;
-                float minY = mMinTemperatureY;
-                canvas.drawText(maxName, maxX, maxY, mMaxTemperaturePaint);
-                canvas.drawText(minName, minX, minY, mMinTemperaturePaint);
-            }
+        private void drawWeatherDrawable(Canvas canvas, Bitmap bitmap, int position, float top, Paint paint) {
+            float bitmapWidth = bitmap.getWidth();
+            float left = (mItemWidth - bitmapWidth) / 2 + position * mItemWidth;
+            canvas.drawBitmap(bitmap, left, top, paint);
         }
 
         private void drawTemperatureChart(Canvas canvas) {
@@ -339,21 +462,21 @@ public class WeatherChartView extends HorizontalScrollView {
             // 绘制最高温度的线
             for (int i = 0; i < pointsList.size(); i++) {
                 Points points = pointsList.get(i);
-                createShader(mMaxPath, i, points.startX, points.maxStartY, points.endX, points.maxEndY);
+                createShader(mMaxTemperPath, i, points.startX, points.maxStartY, points.endX, points.maxEndY);
             }
-            mMaxPath.lineTo(getWidth(), getHeight());
-            mMaxPath.lineTo(0, getHeight());
-            mMaxPath.close();
-            canvas.drawPath(mMaxPath, mMaxTemperChartLinePaint);
+            mMaxTemperPath.lineTo(getWidth(), getHeight());
+            mMaxTemperPath.lineTo(0, getHeight());
+            mMaxTemperPath.close();
+            canvas.drawPath(mMaxTemperPath, mMaxTemperChartLinePaint);
 
             for (int i = 0; i < pointsList.size(); i++) {
                 Points points = pointsList.get(i);
-                createShader(mMinPath, i, points.startX, points.minStartY, points.endX, points.minEndY);
+                createShader(mMinTemperPath, i, points.startX, points.minStartY, points.endX, points.minEndY);
             }
-            mMinPath.lineTo(getWidth(), getHeight());
-            mMinPath.lineTo(0, getHeight());
-            mMinPath.close();
-            canvas.drawPath(mMinPath, mMinTemperChartLinePaint);
+            mMinTemperPath.lineTo(getWidth(), getHeight());
+            mMinTemperPath.lineTo(0, getHeight());
+            mMinTemperPath.close();
+            canvas.drawPath(mMinTemperPath, mMinTemperChartLinePaint);
             for (int i = 0; i < pointsList.size(); i++) {
                 Points points = pointsList.get(i);
                 canvas.drawLine(points.startX, points.maxStartY,
@@ -367,9 +490,6 @@ public class WeatherChartView extends HorizontalScrollView {
                 canvas.drawCircle(points.endX, points.minEndY, 6, mTemperChartCirclePaint);
             }
         }
-
-        Path mMaxPath = new Path();
-        Path mMinPath = new Path();
 
         private void createShader(Path path, int i, float startX, float startY, float endX, float endY) {
             if (i == 0) {
@@ -424,12 +544,170 @@ public class WeatherChartView extends HorizontalScrollView {
         }
 
         class Points {
-            public float startX;
-            public float maxStartY;
-            public float endX;
-            public float maxEndY;
-            public float minStartY;
-            public float minEndY;
+            float startX;
+            float maxStartY;
+            float endX;
+            float maxEndY;
+            float minStartY;
+            float minEndY;
+        }
+
+        public class InnerData {
+            private String weekName;
+            private String dateName;
+            private Bitmap weatherIcon;
+            private int maxTemper;
+            private int minTemper;
+
+            public String getWeekName() {
+                return weekName;
+            }
+
+            public void setWeekName(String weekName) {
+                this.weekName = weekName;
+            }
+
+            public String getDateName() {
+                return dateName;
+            }
+
+            public void setDateName(String dateName) {
+                this.dateName = dateName;
+            }
+
+            public Bitmap getWeatherIcon() {
+                return weatherIcon;
+            }
+
+            public void setWeatherIcon(Bitmap weatherIcon) {
+                this.weatherIcon = weatherIcon;
+            }
+
+            public int getMaxTemper() {
+                return maxTemper;
+            }
+
+            public void setMaxTemper(int maxTemper) {
+                this.maxTemper = maxTemper;
+            }
+
+            public int getMinTemper() {
+                return minTemper;
+            }
+
+            public void setMinTemper(int minTemper) {
+                this.minTemper = minTemper;
+            }
+        }
+
+        /**
+         * 设置文本颜色
+         *
+         * @param paint     需要设置的画笔
+         * @param textColor 设置进来的颜色
+         */
+        private void setTextColor(Paint paint, int textColor) {
+            if (textColor != paint.getColor()) {
+                paint.setColor(textColor);
+                invalidate();
+            }
+        }
+
+        /**
+         * 设置文本大小
+         *
+         * @param paint    需要设置的画笔
+         * @param textSize 设置进来的大小
+         */
+        private void setTextSize(Paint paint, float textSize) {
+            textSize = applyDimensionTextSize(textSize);
+            if (textSize != paint.getTextSize()) {
+                paint.setTextSize(textSize);
+                invalidate();
+            }
+        }
+
+        public int getWeekTextColor() {
+            return mWeekTextColor;
+        }
+
+        public void setWeekTextColor(int textColor) {
+            this.mWeekTextColor = textColor;
+            setTextColor(mWeekPaint, textColor);
+        }
+
+        public int getDateTextColor() {
+            return mDateTextColor;
+        }
+
+        public void setDateTextColor(int textColor) {
+            this.mDateTextColor = textColor;
+            setTextColor(mDatePaint, textColor);
+        }
+
+        public int getItemWidth() {
+            return mItemWidth;
+        }
+
+        public void setItemWidth(int itemWidth) {
+            if (this.mItemWidth != itemWidth) {
+                this.mItemWidth = itemWidth;
+                invalidate();
+            }
+        }
+
+        public int getMinTemperTextColor() {
+            return mMinTemperTextColor;
+        }
+
+        public void setMinTemperTextColor(int textColor) {
+            this.mMinTemperTextColor = textColor;
+            setTextColor(mMinTemperTextPaint, textColor);
+        }
+
+        public int getMaxTemperTextColor() {
+            return mMaxTemperTextColor;
+        }
+
+        public void setMaxTemperTextColor(int textColor) {
+            this.mMaxTemperTextColor = textColor;
+            setTextColor(mMaxTemperTextPaint, textColor);
+        }
+
+        public float getWeekTextSize() {
+            return mWeekTextSize;
+        }
+
+        public void setWeekTextSize(float textSize) {
+            this.mWeekTextSize = textSize;
+            setTextSize(mWeekPaint, textSize);
+        }
+
+        public float getDateTextSize() {
+            return mDateTextSize;
+        }
+
+        public void setDateTextSize(float textSize) {
+            this.mDateTextSize = textSize;
+            setTextSize(mDatePaint, textSize);
+        }
+
+        public float getMaxTemperTextSize() {
+            return mMaxTemperTextSize;
+        }
+
+        public void setMaxTemperTextSize(float textSize) {
+            this.mMaxTemperTextSize = textSize;
+            setTextSize(mMaxTemperTextPaint, textSize);
+        }
+
+        public float getMinTemperTextSize() {
+            return mMinTemperTextSize;
+        }
+
+        public void setMinTemperTextSize(float textSize) {
+            this.mMinTemperTextSize = textSize;
+            setTextSize(mMinTemperTextPaint, textSize);
         }
     }
 }

@@ -12,29 +12,28 @@
         <!-- 闪屏 -->
         <activity
             android:name=".ui.activity.SplashActivity"
-            android:theme="@style/NoTitleFullScreen">
-
-        </activity>
+            android:theme="@style/NoTitleFullScreen"></activity>
         <!-- 主界面 -->
         <activity android:name=".ui.activity.MainActivity" />
-        <!--天气-->
-        <activity android:name=".ui.activity.WeatherActivity"
-            android:theme="@style/WindowBackground"
-            >
+        <!-- 天气 -->
+        <activity
+            android:name=".ui.activity.WeatherActivity"
+            android:theme="@style/WindowBackground">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <!--饮食-->
+        <!-- 饮食 -->
         <activity android:name=".ui.activity.FoodActivity" />
-        <!--健康-->
+        <!-- 健康 -->
         <activity android:name=".ui.activity.HealthActivity" />
-        <!--旅行-->
+        <!-- 旅行 -->
         <activity android:name=".ui.activity.TravelActivity" />
-        <!--孕育-->
-        <activity android:name=".ui.activity.BreedActivity"/>
+        <!-- 孕育 -->
+        <activity android:name=".ui.activity.BreedActivity" />
+        <activity android:name=".ui.activity.TestActivity"/>
     </application>
 
 </manifest>
